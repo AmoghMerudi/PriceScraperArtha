@@ -1,7 +1,5 @@
 from fastapi import FastAPI
+from app.api import products
 
-app = FastAPI()
-
-@app.get("/api/health")
-def health():
-    return {"status": "ok"}
+app = FastAPI(title = "Price Scraper API")
+app.include_router(products.router)
