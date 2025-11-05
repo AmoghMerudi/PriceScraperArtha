@@ -1,8 +1,9 @@
 from app.scraping.demo_scraper import DemoScrapper
+from app.scraping.amazon_scraper import AmazonScraper
 
 SCRAPER_REGISTRY = {
     "demo": DemoScrapper(),
-    "amazon": DemoScrapper() #placeholder
+    "amazon": AmazonScraper() 
 }
 
 def get_scraper(site: str):

@@ -25,19 +25,26 @@ def add_product(url:str, site: str, db: Session = Depends(get_db)):
 
 @router.post("/scrape")
 async def scrape_product(url: str, site: str, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.url == url).first()
+
+    if not product:
+        product = models.Product(url=url, site=site)
+        db.add(product)
+        db.commit()
+        db.refresh(product)
+
     scraper = get_scraper(site)
     quote = await scraper.fetch(url)
 
-    product = db.query(Product).filter_by(url=url).first()
-    if not product:
-        raise HTTPException(status_code = 404, detail = "Product not found")
-    
-    price = Price(
-        product_id = product.id,
-        amount_cents = quote.price_cents,
-        currency = quote.currency  
+    if not quote.price_cents:
+        return {"message": "No price found", "url": url}
+
+    new_price = models.Price(
+        product_id=product.id,
+        amount_cents=quote.price_cents,
+        currency=quote.currency
     )
-    db.add(price)
+    db.add(new_price)
     db.commit()
-    db.refresh(price)
-    return {"message": "Price Logged", "price": quote.price_cents/100, "currency": quote.currency}
+
+    return {"message": "Price Logged", "price": quote.price_cents / 100, "currency": quote.currency}
