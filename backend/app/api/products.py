@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.db.session import get_db
 from app.db import models
+from app.db.models import Product, Price
+from app.scraping.registry import get_scraper 
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
 
@@ -19,3 +22,22 @@ def add_product(url:str, site: str, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(product)
     return product
+
+@router.post("/scrape")
+async def scrape_product(url: str, site: str, db: Session = Depends(get_db)):
+    scraper = get_scraper(site)
+    quote = await scraper.fetch(url)
+
+    product = db.query(Product).filter_by(url=url).first()
+    if not product:
+        raise HTTPException(status_code = 404, detail = "Product not found")
+    
+    price = Price(
+        product_id = product.id,
+        amount_cents = quote.price_cents,
+        currency = quote.currency  
+    )
+    db.add(price)
+    db.commit()
+    db.refresh(price)
+    return {"message": "Price Logged", "price": quote.price_cents/100, "currency": quote.currency}
