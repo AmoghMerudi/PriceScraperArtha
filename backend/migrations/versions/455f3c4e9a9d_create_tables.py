@@ -1,8 +1,8 @@
-"""init schema
+"""create tables
 
-Revision ID: 8491d9de8cf8
+Revision ID: 455f3c4e9a9d
 Revises: 
-Create Date: 2025-10-31 00:26:09.260420
+Create Date: 2025-11-08 01:41:36.758984
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8491d9de8cf8'
+revision: str = '455f3c4e9a9d'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

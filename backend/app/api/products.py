@@ -5,6 +5,8 @@ from app.db.session import get_db
 from app.db import models
 from app.db.models import Product, Price
 from app.scraping.registry import get_scraper 
+from app.db import crud, database
+from app.db.models import Base
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
 
@@ -48,3 +50,30 @@ async def scrape_product(url: str, site: str, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Price Logged", "price": quote.price_cents / 100, "currency": quote.currency}
+
+Base.metadata.create_all(bind=database.engine)
+
+def get_db():
+    db = database.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@router.get("/")
+def list_products(db: Session = Depends(get_db)):
+    return crud.get_all_products(db)
+
+@router.get("/{product_id}")
+def get_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(crud.Product).filter(crud.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
+
+@router.delete("/{product_id}")
+def remove_product(product_id: int, db: Session = Depends(get_db)):
+    success = crud.delete_product(db, product_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"message": "Product deleted successfully"}

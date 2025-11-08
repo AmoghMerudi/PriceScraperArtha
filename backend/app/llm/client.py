@@ -2,7 +2,7 @@ import httpx
 import json
 
 async def extract_price_from_html(html: str) -> dict | None:
-    html = html[:100000]  # Limit to first 100k chars for speed and context window sanity
+    html = html[:150000]  # Limit to first 100k chars for speed and context window sanity
 
     prompt = """
 You are a precise HTML parser that extracts structured product data from e-commerce pages.
@@ -30,7 +30,7 @@ HTML snippet:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             "http://localhost:11434/api/generate",
-            json={"model": "llama3", "prompt": prompt, "stream": False},
+            json={"model": "llama3.1:8b", "prompt": prompt, "stream": False},
             timeout=120,
         )
 
